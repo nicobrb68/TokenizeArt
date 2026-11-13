@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>42 Mulhouse - City Edition | TokenizeArt Explorer & DApp</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.13.4/ethers.umd.min.js"></script>
+  <style>
+    :root {
+      --bg: #0a0d12;
+      --card: #121821;
+      --card-inner: #0d1219;
+      --border: #1e293b;
+      --accent: #00babc;
+      --accent-hover: #00d4d6;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --success: #10b981;
+      --error: #ef4444;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace;
+      background-color: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem 1rem 4rem;
+    }
+
+    header, main {
+      width: 100%;
+      max-width: 1040px;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 1.5rem;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 2rem;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+
+    .badge {
+      background: rgba(0, 186, 188, 0.15);
+      color: var(--accent);
+      border: 1px solid var(--accent);
+      padding: 0.25rem 0.6rem;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      font-weight: 700;
+    }
+
+    button {
+      background-color: var(--accent);
+      color: #061014;
+      border: none;
+      padding: 0.7rem 1.25rem;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+    }
+
+    button:hover:not(:disabled) {
+      background-color: var(--accent-hover);
+      transform: translateY(-1px);
+    }
+
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    button.secondary {
+      background: transparent;
+      color: var(--accent);
+      border: 1px solid var(--accent);
+      padding: 0.5rem 0.9rem;
+      font-size: 0.82rem;
+    }
+
+    button.secondary:hover:not(:disabled) {
+      background: rgba(0, 186, 188, 0.12);
+    }
+
+    .top-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 1.5rem;
+      margin-bottom: 2.5rem;
+    }
+
+    @media (max-width: 820px) {
+      .top-grid { grid-template-columns: 1fr; }
+    }
+
+    .card {
+      background-color: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .meta-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.6rem 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.88rem;
+      gap: 1rem;
+    }
+
+    .meta-row span:first-child { color: var(--muted); }
+    .meta-row a { color: var(--accent); text-decoration: none; }
+    .meta-row a:hover { text-decoration: underline; }
+
+    .status-box {
+      padding: 0.85rem;
+      border-radius: 8px;
+      background: rgba(15, 23, 42, 0.85);
+      border: 1px solid var(--border);
+      font-size: 0.85rem;
+      line-height: 1.5;
+      word-break: break-all;
+    }
+
+    .status-success { border-color: var(--success); color: var(--success); }
+    .status-error { border-color: var(--error); color: var(--error); }
+
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.25rem;
+    }
+
+    .gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .nft-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .nft-preview {
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      background: #070a0e;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-bottom: 1px solid var(--border);
+      padding: 0.75rem;
+    }
+
+    .nft-preview img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    .nft-body {
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      flex: 1;
+    }
+
+    .nft-title-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .tag {
+      font-size: 0.75rem;
+      padding: 0.2rem 0.5rem;
+      border-radius: 5px;
+      font-weight: 700;
+    }
+
+    .tag-ipfs { background: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid #3b82f6; }
+    .tag-onchain { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid #10b981; }
+
+    .nft-detail {
+      font-size: 0.82rem;
+      color: var(--muted);
+      word-break: break-all;
+    }
+
+    pre.inspector {
+      background: var(--card-inner);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.9rem;
+      font-size: 0.78rem;
+      color: #cbd5e1;
+      overflow-x: auto;
+      line-height: 1.45;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <h2>42 Mulhouse - City Edition</h2>
+      <span class="badge">ERC-721 • Sepolia</span>
+    </div>
+    <div style="display: flex; gap: 0.75rem; align-items: center;">
+      <button id="refreshBtn" class="secondary">Refresh Chain Data</button>
+      <button id="connectBtn">Connect MetaMask</button>
+    </div>
+  </header>
+
+  <main>
+    <!-- Top Section: Contract Overview + Public Minting -->
+    <div class="top-grid">
+      <section class="card">
+        <h3>Smart Contract & On-Chain Storage</h3>
+        <div>
+          <div class="meta-row">
+            <span>Contract (Verified)</span>
+            <a href="https://sepolia.etherscan.io/address/0x5c7a3B28D9b11f4166092CA484aB1Cb1b43EBf0b#code" target="_blank" rel="noopener noreferrer">
+              0x5c7a3B28...b43EBf0b
+            </a>
+          </div>
+          <div class="meta-row">
+            <span>SSTORE2 Chunk #1</span>
+            <a href="https://sepolia.etherscan.io/address/0xdC24EB1D4b2A0dEc73973FE71118b90156a233b6" target="_blank" rel="noopener noreferrer">
+              0xdC24EB1D...56a233b6 (10.5 KB)
+            </a>
+          </div>
+          <div class="meta-row">
+            <span>SSTORE2 Chunk #2</span>
+            <a href="https://sepolia.etherscan.io/address/0x5752f776B35507529C893911b2c2546F66153FEF" target="_blank" rel="noopener noreferrer">
+              0x5752f776...66153FEF (10.2 KB)
+            </a>
+          </div>
+          <div class="meta-row">
+            <span>Total Minted Supply</span>
+            <strong id="totalMinted" style="color: var(--accent);">Loading...</strong>
+          </div>
+          <div class="meta-row">
+            <span>RPC Source</span>
+            <span id="rpcSource" style="font-size: 0.8rem;">Detecting...</span>
+          </div>
+        </div>
+        <pre class="inspector" id="onChainInspector">Querying tokenURI() on Ethereum Sepolia...</pre>
+      </section>
+
+      <section class="card">
+        <h3>Public On-Chain Mint</h3>
+        <p style="color: var(--muted); font-size: 0.88rem; line-height: 1.55;">
+          Mint a new 100% on-chain edition of <strong>42 Mulhouse - City Edition</strong> directly into your wallet. Artwork and JSON metadata are assembled dynamically via EVM bytecode.
+        </p>
+
+        <div class="meta-row">
+          <span>Connected Wallet</span>
+          <span id="walletAddress">Not connected</span>
+        </div>
+        <div class="meta-row">
+          <span>Mint Price</span>
+          <span>Free (Sepolia gas only)</span>
+        </div>
+
+        <button id="mintBtn" disabled>Connect Wallet to Mint</button>
+        <div id="statusBox" class="status-box" style="display: none;"></div>
+      </section>
+    </div>
+
+    <!-- Bottom Section: Live Minted Tokens Gallery -->
+    <div class="section-header">
+      <h3>Minted Collection Gallery</h3>
+      <span style="color: var(--muted); font-size: 0.85rem;">Live state read from ERC-721 contract</span>
+    </div>
+    <div class="gallery-grid" id="galleryGrid">
+      <div class="card"><span style="color: var(--muted);">Loading tokens from blockchain...</span></div>
+    </div>
+  </main>
+
+  <script>
+    const CONTRACT_ADDRESS = "0x5c7a3B28D9b11f4166092CA484aB1Cb1b43EBf0b";
+    const SEPOLIA_CHAIN_ID_HEX = "0xaa36a7"; // 11155111
+
+    // Fallback public Sepolia RPC endpoints in case MetaMask is not installed or on another network
+    const FALLBACK_RPCS = [
+      "https://ethereum-sepolia-rpc.publicnode.com",
+      "https://rpc.sepolia.org",
+      "https://1rpc.io/sepolia"
+    ];
+
+    const CONTRACT_ABI = [
+      "function totalMinted() view returns (uint256)",
+      "function ownerOf(uint256 tokenId) view returns (address)",
+      "function tokenURI(uint256 tokenId) view returns (string)",
+      "function mintOnChain() returns (uint256)",
+      "event NFTMinted(address indexed minter, uint256 indexed tokenId, bool isOnChain)"
+    ];
+
+    const connectBtn = document.getElementById("connectBtn");
+    const refreshBtn = document.getElementById("refreshBtn");
+    const mintBtn = document.getElementById("mintBtn");
+    const totalMintedEl = document.getElementById("totalMinted");
+    const rpcSourceEl = document.getElementById("rpcSource");
+    const walletAddressEl = document.getElementById("walletAddress");
+    const statusBox = document.getElementById("statusBox");
+    const galleryGrid = document.getElementById("galleryGrid");
+    const inspectorEl = document.getElementById("onChainInspector");
+
+    let signer = null;
+    let writeContract = null;
+
+    function showStatus(html, type = "") {
+      statusBox.style.display = "block";
+      statusBox.className = "status-box " + (type ? `status-${type}` : "");
+      statusBox.innerHTML = html;
+    }
+
+    // Resolve a working Sepolia provider (prefers MetaMask if connected to Sepolia, else tests public RPCs)
+    async function getWorkingReadProvider() {
+      if (window.ethereum) {
+        try {
+          const chainId = await window.ethereum.request({ method: "eth_chainId" });
+          if (chainId === SEPOLIA_CHAIN_ID_HEX) {
+            rpcSourceEl.textContent = "MetaMask (Sepolia)";
+            return new ethers.BrowserProvider(window.ethereum);
+          }
+        } catch (_) {}
+      }
+
+      for (const url of FALLBACK_RPCS) {
+        try {
+          const provider = new ethers.JsonRpcProvider(url);
+          await provider.getBlockNumber();
+          rpcSourceEl.textContent = new URL(url).hostname;
+          return provider;
+        } catch (_) {}
+      }
+      throw new Error("All Sepolia RPC endpoints unreachable");
+    }
+
+    // Convert ipfs:// URIs to an HTTP gateway URL for browser preview
+    function resolveIpfsUrl(uri) {
+      if (uri.startsWith("ipfs://")) {
+        return uri.replace("ipfs://", "https://ipfs.io/ipfs/");
+      }
+      return uri;
+    }
+
+    // Trigger MetaMask native NFT import prompt (EIP-747)
+    async function watchNftInMetaMask(tokenId) {
+      if (!window.ethereum) {
+        alert("MetaMask extension is required to import NFTs.");
+        return;
+      }
+      try {
+        await window.ethereum.request({
+          method: "wallet_watchAsset",
+          params: {
+            type: "ERC721",
+            options: {
+              address: CONTRACT_ADDRESS,
+              tokenId: String(tokenId)
+            }
+          }
+        });
+      } catch (err) {
+        console.error("wallet_watchAsset failed:", err);
+      }
+    }
+
+    // Fetch totalMinted and render every minted token card (IPFS & On-Chain)
+    async function loadCollectionData() {
+      try {
+        const provider = await getWorkingReadProvider();
+        const contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, provider);
+
+        const total = Number(await contract.totalMinted());
+        totalMintedEl.textContent = `${total} NFT${total > 1 ? "s" : ""}`;
+
+        if (total === 0) {
+          galleryGrid.innerHTML = `<div class="card"><span style="color: var(--muted);">No tokens minted yet.</span></div>`;
+          return;
+        }
+
+        galleryGrid.innerHTML = "";
+
+        for (let tokenId = 1; tokenId <= total; tokenId++) {
+          const [owner, uri] = await Promise.all([
+            contract.ownerOf(tokenId),
+            contract.tokenURI(tokenId)
+          ]);
+
+          const isOnChain = uri.startsWith("data:application/json;base64,");
+          let name = `42 Mulhouse - City Edition #${tokenId}`;
+          let imageSrc = "";
+          let storageLabel = isOnChain ? "100% On-Chain SVG" : "IPFS Decentralized";
+
+          if (isOnChain) {
+            const jsonStr = atob(uri.replace("data:application/json;base64,", ""));
+            const meta = JSON.parse(jsonStr);
+            name = meta.name || name;
+            imageSrc = meta.image;
+
+            if (tokenId === 2) {
+              const svgBytes = atob(meta.image.replace("data:image/svg+xml;base64,", "")).length;
+              inspectorEl.textContent =
+                `tokenURI(2) -> data:application/json;base64,...\n` +
+                `Decoded SVG : ${svgBytes} bytes (reassembled from 2 SSTORE2 pointers)\n` +
+                `Attributes  : ${meta.attributes.map(a => `${a.trait_type}=${a.value}`).join(" | ")}`;
+            }
+          } else {
+            try {
+              const res = await fetch(resolveIpfsUrl(uri));
+              const meta = await res.json();
+              name = meta.name || name;
+              imageSrc = resolveIpfsUrl(meta.image);
+            } catch (_) {
+              imageSrc = "";
+            }
+          }
+
+          const card = document.createElement("article");
+          card.className = "nft-card";
+          card.innerHTML = `
+            <div class="nft-preview">
+              ${imageSrc ? `<img src="${imageSrc}" alt="${name}" />` : `<span style="color: var(--muted);">IPFS Gateway Loading...</span>`}
+            </div>
+            <div class="nft-body">
+              <div class="nft-title-row">
+                <strong>Token #${tokenId}</strong>
+                <span class="tag ${isOnChain ? "tag-onchain" : "tag-ipfs"}">${storageLabel}</span>
+              </div>
+              <div style="font-size: 0.92rem; font-weight: 600;">${name}</div>
+              <div class="nft-detail">Owner: ${owner.slice(0, 6)}...${owner.slice(-4)}</div>
+              <div class="nft-detail">URI: ${isOnChain ? "data:application/json;base64,..." : uri}</div>
+              <button class="secondary" style="margin-top: auto;" onclick="watchNftInMetaMask(${tokenId})">
+                + Import Token #${tokenId} to MetaMask
+              </button>
+            </div>
+          `;
+          galleryGrid.appendChild(card);
+        }
+      } catch (err) {
+        totalMintedEl.textContent = "RPC Error";
+        rpcSourceEl.textContent = "Unavailable";
+        inspectorEl.textContent = `Error reading contract: ${err.message}`;
+      }
+    }
+
+    async function connectWallet() {
+      if (!window.ethereum) {
+        showStatus("MetaMask extension not detected.", "error");
+        return;
+      }
+
+      try {
+        const provider = new ethers.BrowserProvider(window.ethereum);
+        await provider.send("eth_requestAccounts", []);
+
+        const currentChainId = await window.ethereum.request({ method: "eth_chainId" });
+        if (currentChainId !== SEPOLIA_CHAIN_ID_HEX) {
+          await window.ethereum.request({
+            method: "wallet_switchEthereumChain",
+            params: [{ chainId: SEPOLIA_CHAIN_ID_HEX }]
+          });
+        }
+
+        signer = await provider.getSigner();
+        const address = await signer.getAddress();
+        writeContract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
+
+        walletAddressEl.textContent = `${address.slice(0, 6)}...${address.slice(-4)}`;
+        connectBtn.textContent = "Wallet Connected";
+        mintBtn.disabled = false;
+        mintBtn.textContent = "Mint On-Chain NFT";
+        showStatus("Connected to Ethereum Sepolia.");
+
+        await loadCollectionData();
+      } catch (err) {
+        showStatus(`Connection failed: ${err.message}`, "error");
+      }
+    }
+
+    async function mintNFT() {
+      if (!writeContract) return;
+
+      try {
+        mintBtn.disabled = true;
+        mintBtn.textContent = "Confirm in MetaMask...";
+        showStatus("Waiting for wallet signature...");
+
+        const tx = await writeContract.mintOnChain();
+        mintBtn.textContent = "Minting on Sepolia...";
+        showStatus(
+          `Transaction submitted! Waiting for confirmation...<br><a href="https://sepolia.etherscan.io/tx/${tx.hash}" target="_blank" style="color: var(--accent);">View Tx on Etherscan</a>`
+        );
+
+        const receipt = await tx.wait();
+        let mintedId = "";
+        for (const log of receipt.logs) {
+          try {
+            const parsed = writeContract.interface.parseLog(log);
+            if (parsed && parsed.name === "NFTMinted") {
+              mintedId = ` (Token #${parsed.args.tokenId.toString()})`;
+            }
+          } catch (_) {}
+        }
+
+        await loadCollectionData();
+        mintBtn.disabled = false;
+        mintBtn.textContent = "Mint Another NFT";
+        showStatus(
+          `NFT minted on-chain${mintedId}!<br><a href="https://sepolia.etherscan.io/tx/${tx.hash}" target="_blank" style="color: var(--accent);">View Transaction on Etherscan</a>`,
+          "success"
+        );
+      } catch (err) {
+        mintBtn.disabled = false;
+        mintBtn.textContent = "Mint On-Chain NFT";
+        showStatus(`Mint failed: ${err.shortMessage || err.message}`, "error");
+      }
+    }
+
+    connectBtn.addEventListener("click", connectWallet);
+    refreshBtn.addEventListener("click", loadCollectionData);
+    mintBtn.addEventListener("click", mintNFT);
+
+    loadCollectionData();
+  </script>
+</body>
+</html>

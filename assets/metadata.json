@@ -1,0 +1,11 @@
+{
+  "name": "42 Mulhouse - City Edition",
+  "description": "Official TokenizeArt NFT representing 42 Mulhouse (Temple Saint-Etienne & Tour de l'Europe), created by nbarbosa.",
+  "artist": "nbarbosa",
+  "image": "ipfs://bafkreiffqj77yaztjd7hcu7lvgymhcglyiw6ih4rlxggvqpukk7p7cucya",
+  "attributes": [
+    { "trait_type": "Artist", "value": "nbarbosa" },
+    { "trait_type": "Campus", "value": "42 Mulhouse" },
+    { "trait_type": "Monuments", "value": "Tour de l'Europe & Temple Saint-Etienne" }
+  ]
+}
