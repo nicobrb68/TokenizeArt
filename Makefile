@@ -1,7 +1,4 @@
-# Default contract address on Ethereum Sepolia (overridden by .env if present)
--include .env
-export
-
+# Default contract address on Ethereum Sepolia
 CONTRACT_ADDRESS ?= 0x5c7a3B28D9b11f4166092CA484aB1Cb1b43EBf0b
 PORT ?= 8081
 
@@ -32,15 +29,15 @@ verify:
 
 # Serve the Web3 DApp and collection explorer locally
 web:
-	@echo "Starting TokenizeArt DApp on http://localhost:$\(PORT\)"
+	@echo "Starting TokenizeArt DApp on http://localhost:$(PORT)"
 	python3 -m http.server $(PORT) --directory website
 
 # Display deployed contract links and on-chain proofs for evaluation
 info:
-	@echo "\=\=\= TokenizeArt42 (Sepolia Testnet) ==="
+	@echo "=== TokenizeArt42 (Sepolia Testnet) ==="
 	@echo "Contract   : $(CONTRACT_ADDRESS)"
-	@echo "Etherscan  : https://sepolia.etherscan.io/address/$\(CONTRACT_ADDRESS\)\#code"
-	@echo "Sourcify   : https://sourcify.dev/server/repo-ui/11155111/$\(CONTRACT_ADDRESS\)"
+	@echo "Etherscan  : https://sepolia.etherscan.io/address/$(CONTRACT_ADDRESS)#code"
+	@echo "Sourcify   : https://sourcify.dev/server/repo-ui/11155111/$(CONTRACT_ADDRESS)"
 	@echo "SSTORE2 #1 : 0xdC24EB1D4b2A0dEc73973FE71118b90156a233b6"
 	@echo "SSTORE2 #2 : 0x5752f776B35507529C893911b2c2546F66153FEF"
 	@echo "IPFS URI   : ipfs://bafkreidhzty33rqegajaqo75ilyvtoz4ri5ezzb66yn7mga5p2hwkxhveu"
